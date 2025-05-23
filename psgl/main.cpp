@@ -19,13 +19,12 @@
 
 #include <cell/dbgfont.h>
 
-#include "../../Common/gfxCommon.h"
-#include "../../Common/gfxObject.h"
-#include "../../Common/gfxPad.h"
+#include "Common/gfxCommon.h"
+#include "Common/gfxObject.h"
 
 #include <sys/sys_time.h>
 
-#include "../Data/cube.h"		// our test data
+#include "cube.h"		// our test data
 
 using namespace Vectormath;
 using namespace Aos;
@@ -34,20 +33,13 @@ using namespace Aos;
 
 // switch to true to run-time compile the shaders 
 const bool LOAD_SHADER_BINARY = true; 
-// const bool LOAD_SHADER_BINARY = false; 
-bool VSYNC_ON = false; 
+const bool VSYNC_ON = false; 
 
 // shader binary 
-// #define VERTEX_PROGRAM_BINARY		REMOTE_PATH"/shaders/Tutorial/vs_basicSample.cgelf"
-// #define FRAGMENT_PROGRAM_BINARY		REMOTE_PATH"/shaders/Tutorial/fs_basicSample.cgelf"
-
 #define VERTEX_PROGRAM_BINARY		  SYS_APP_HOME"/shaders/vs_basicSample.cgelf"
 #define FRAGMENT_PROGRAM_BINARY		SYS_APP_HOME"/shaders/fs_basicSample.cgelf"
 
 // shader sources 
-// #define VERTEX_PROGRAM_SOURCE		REMOTE_PATH"/shaders/Tutorial/vs_basicSample.cg"
-// #define FRAGMENT_PROGRAM_SOURCE		REMOTE_PATH"/shaders/Tutorial/fs_basicSample.cg"
-
 #define VERTEX_PROGRAM_SOURCE		  SYS_APP_HOME"/shaders/vs_basicSample.cg"
 #define FRAGMENT_PROGRAM_SOURCE		SYS_APP_HOME"/shaders/fs_basicSample.cg"
 
@@ -173,48 +165,6 @@ void sampleUpdateMatrices()
 //-----------------------------------------------------------------------------
 
 
-void sampleUpdateInput()
-{
-	float Speed = .01f; 
-	
-	gfxPadRead(); 
-	
-	// Move the camera position around based on the DPad and RightStick movement. 
-	if(gfxDpadUp(0))		
-		ViewPos[1] += Speed; 
-	if(gfxDpadDown(0))		
-		ViewPos[1] -= Speed; 	
-	if(gfxDpadLeft(0))		 
-		ViewPos[0] -= Speed; 			
-	if(gfxDpadRight(0))		
-		ViewPos[0] += Speed; 			
-	if(gfxR1Down(0))
-		ViewPos[2] += Speed; 
-	if(gfxR2Down(0))	
-		ViewPos[2] -= Speed; 	
-
-	// Rotated the camera angle about X and Y based on LeftStick movement. 
-	if(gfxL1Down(0))
-		ViewAng[0] += Speed; 
-	if(gfxL2Down(0))
-		ViewAng[1] -= Speed; 	
-
-
-	// toggle VSYNC 
-	if ( gfxDpadCross(0) )
-		VSYNC_ON = true; 
-	if ( gfxDpadSquare(0) )
-		VSYNC_ON = false; 
-	
-	
-	// update vsync state 
-	if ( VSYNC_ON )
-	  glEnable(GL_VSYNC_SCE);
-	else 
-   	  glDisable(GL_VSYNC_SCE); 
-
-}
-
 //-----------------------------------------------------------------------------
 // void sampleRender()
 // Description: 
@@ -302,9 +252,6 @@ int main()
 	// init PSGL and get the current system width and height
 	gfxInitGraphics();
 
-	// initalize the PAD 	
-	gfxInitPad(); 
-
 	// initalize the dbgFonts 
 	dbgFontInit();		
 	
@@ -314,10 +261,8 @@ int main()
 	while (1)
 	{
 		// PSGL doesn't clear the screen on startup, so let's do that here.
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-		
-		// update based on new pad state 
-		sampleUpdateInput();
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);		
+
 		// update the matrices 
 		sampleUpdateMatrices();
 		// render 
