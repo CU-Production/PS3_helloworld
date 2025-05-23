@@ -8,7 +8,7 @@ CELL_MK_DIR ?= $(CELL_SDK)/samples/mk
 include $(CELL_MK_DIR)/sdk.makedef.mk
 
 PPU_SRCS		=	main.cpp $(VPSHADER_PPU_OBJS) $(FPSHADER_PPU_OBJS)
-PPU_TARGET		=	basic.ppu.elf
+PPU_TARGET		=	gcm-triangle.elf
 
 GCC_PPU_CXXFLAGS += -fno-exceptions -fno-rtti
 PPU_LIBS		+=	$(CELL_TARGET_PATH)/ppu/lib/libgcm_cmd.a \

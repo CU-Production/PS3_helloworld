@@ -1,13 +1,6 @@
-/*   SCE CONFIDENTIAL                                       */
-/*   PlayStation(R)3 Programmer Tool Runtime Library 475.001 */
-/*   Copyright (C) 2006 Sony Computer Entertainment Inc.    */
-/*   All Rights Reserved.                                   */
-
-void main
-(
-	float4 color_in      : COLOR,
-	out float4 color_out : COLOR
-)
+void main (float4     color  : COLOR,
+           
+           out float4 oColor : COLOR)
 {
-	color_out = color_in;
+    oColor = color;
 }

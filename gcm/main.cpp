@@ -49,8 +49,6 @@ static void *localMemoryAlign(const uint32_t alignment,
 
 #define HOST_SIZE (1*1024*1024)
 
-/* prototypes */
-extern "C" int32_t userMain(void);
 
 static void setRenderState(void);
 static void setDrawEnv(void);
@@ -77,7 +75,6 @@ static unsigned char *fragment_program_ptr =
 
 static CGprogram vertex_program;
 static CGprogram fragment_program;
-static CGparameter model_view_projection;
 
 static void *vertex_program_ucode;
 static void *fragment_program_ucode;
@@ -85,7 +82,6 @@ static uint32_t fragment_offset;
 static uint32_t vertex_offset[2];
 static uint32_t color_index ;
 static uint32_t position_index ;
-static float MVP[16];
 
 static uint32_t frame_index = 0;
 
@@ -179,82 +175,6 @@ static void initShader(void)
   vertex_program_ucode = ucode;
 }
 
-static void buildProjection(float *M, 
-    const float top, 
-    const float bottom, 
-    const float left, 
-    const float right, 
-    const float near, 
-    const float far)
-{
-  memset(M, 0, 16*sizeof(float)); 
-
-  M[0*4+0] = (2.0f*near) / (right - left);
-  M[1*4+1] = (2.0f*near) / (bottom - top);
-
-  float A = (right + left) / (right - left);
-  float B = (top + bottom) / (top - bottom);
-  float C = -(far + near) / (far - near);
-  float D = -(2.0f*far*near) / (far - near);
-
-  M[0*4 + 2] = A;
-  M[1*4 + 2] = B;
-  M[2*4 + 2] = C;
-  M[3*4 + 2] = -1.0f; 
-  M[2*4 + 3] = D;
-}
-
-static void matrixMul(float *Dest, float *A, float *B)
-{
-  for (int i=0; i < 4; i++) {
-    for (int j=0; j < 4; j++) {
-      Dest[i*4+j] 
-        = A[i*4+0]*B[0*4+j] 
-        + A[i*4+1]*B[1*4+j] 
-        + A[i*4+2]*B[2*4+j] 
-        + A[i*4+3]*B[3*4+j];
-    }
-  }
-}
-
-static void matrixTranslate(float *M, 
-    const float x, 
-    const float y, 
-    const float z)
-{
-  memset(M, 0, sizeof(float)*16);
-  M[0*4+3] = x;
-  M[1*4+3] = y;
-  M[2*4+3] = z;
-
-  M[0*4+0] = 1.0f;
-  M[1*4+1] = 1.0f;
-  M[2*4+2] = 1.0f;
-  M[3*4+3] = 1.0f;
-}
-
-static void unitMatrix(float *M)
-{
-  M[0*4+0] = 1.0f;
-  M[0*4+1] = 0.0f;
-  M[0*4+2] = 0.0f;
-  M[0*4+3] = 0.0f;
-
-  M[1*4+0] = 0.0f;
-  M[1*4+1] = 1.0f;
-  M[1*4+2] = 0.0f;
-  M[1*4+3] = 0.0f;
-
-  M[2*4+0] = 0.0f;
-  M[2*4+1] = 0.0f;
-  M[2*4+2] = 1.0f;
-  M[2*4+3] = 0.0f;
-
-  M[3*4+0] = 0.0f;
-  M[3*4+1] = 0.0f;
-  M[3*4+2] = 0.0f;
-  M[3*4+3] = 1.0f;
-}
 
 #define CB_SIZE	(0x10000)
 
@@ -335,19 +255,19 @@ static int32_t initDisplay(void)
 
 static void setVertex(Vertex_t* vertex_buffer)
 {
-  vertex_buffer[0].x = -1.0f; 
-  vertex_buffer[0].y = -1.0f; 
-  vertex_buffer[0].z = -1.0f; 
+  vertex_buffer[0].x = -0.5f; 
+  vertex_buffer[0].y = -0.5f; 
+  vertex_buffer[0].z =  0.0f; 
   vertex_buffer[0].rgba=0x00ff0000;
 
-  vertex_buffer[1].x =  1.0f; 
-  vertex_buffer[1].y = -1.0f; 
-  vertex_buffer[1].z = -1.0f; 
+  vertex_buffer[1].x =  0.5f; 
+  vertex_buffer[1].y = -0.5f; 
+  vertex_buffer[1].z =  0.0f; 
   vertex_buffer[1].rgba=0x0000ff00;
 
-  vertex_buffer[2].x = -1.0f; 
-  vertex_buffer[2].y =  1.0f; 
-  vertex_buffer[2].z = -1.0f; 
+  vertex_buffer[2].x =  0.0f; 
+  vertex_buffer[2].y =  0.5f; 
+  vertex_buffer[2].z =  0.0f; 
   vertex_buffer[2].rgba=0xff000000;
 }
 
@@ -389,7 +309,6 @@ static void setDrawEnv(void)
 static void setRenderState(void)
 {
   cellGcmSetVertexProgram(vertex_program, vertex_program_ucode);
-  cellGcmSetVertexProgramParameter(model_view_projection, MVP);
   cellGcmSetVertexDataArray(position_index,
       0, 
       sizeof(Vertex_t), 
@@ -418,28 +337,6 @@ static int32_t setRenderObject(void)
   vertex_buffer = (Vertex_t*)ret;
   setVertex(vertex_buffer);
 
-  // transform
-  float M[16];
-  float P[16];
-  float V[16];
-  float VP[16];
-
-  // projection 
-  buildProjection(P, -1.0f, 1.0f, -1.0f, 1.0f, 1.0, 10000.0f); 
-
-  // 16:9 scale or 4:3 scale
-  matrixTranslate(V, 0.0f, 0.0f, -4.0);
-  V[0*4 + 0] = 1.0f / display_aspect_ratio;
-  V[1*4 + 1] = 1.0f; 
-
-  // model view 
-  matrixMul(VP, P, V);
-
-  unitMatrix(M);
-  matrixMul(MVP, VP, M);
-
-  model_view_projection = cellGcmCgGetNamedParameter(vertex_program, "modelViewProj");
-  CELL_GCMUTIL_CG_PARAMETER_CHECK_ASSERT(model_view_projection);
   CGparameter position = cellGcmCgGetNamedParameter(vertex_program, "position");
   CELL_GCMUTIL_CG_PARAMETER_CHECK_ASSERT(position);
   CGparameter color = cellGcmCgGetNamedParameter(vertex_program, "color");
