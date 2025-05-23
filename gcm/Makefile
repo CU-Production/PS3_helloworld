@@ -7,10 +7,10 @@ CELL_SDK ?= /usr/local/cell
 CELL_MK_DIR ?= $(CELL_SDK)/samples/mk
 include $(CELL_MK_DIR)/sdk.makedef.mk
 
-PPU_SRCS		=	$(CELL_COMMON_DIR)/gcmutil/EntryPoint.c main.cpp $(VPSHADER_PPU_OBJS) $(FPSHADER_PPU_OBJS)
+PPU_SRCS		=	main.cpp $(VPSHADER_PPU_OBJS) $(FPSHADER_PPU_OBJS)
 PPU_TARGET		=	basic.ppu.elf
 
-GCC_PPU_CXXFLAGS += -fno-exceptions -fno-rtti -I$(CELL_SDK)/samples/common/gcmutil
+GCC_PPU_CXXFLAGS += -fno-exceptions -fno-rtti
 PPU_LIBS		+=	$(CELL_TARGET_PATH)/ppu/lib/libgcm_cmd.a \
 					$(CELL_TARGET_PATH)/ppu/lib/libgcm_sys_stub.a 
 PPU_LDLIBS		+= 	-lsysmodule_stub  -lm -lsysutil_stub
